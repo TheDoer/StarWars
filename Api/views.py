@@ -25,28 +25,40 @@ class PeopleView(APIView):
         serializer = PeopleSerializer(job, many=True)
         return Response({"results":serializer.data})
 
-class SearchPeople(generics.ListAPIView):
-    serializer_class = PeopleSerializer
-    http_method_names = ['get']
+# class UserPeople(generics.ListAPIView):
+#     serializer_class = PeopleSerializer
+#     http_method_names = ['get']
 
-    def get_queryset(self):
-        queryset = People.objects.all()
+#     def get_queryset(self):
+#         queryset = People.objects.all()
+#         search = self.request.query_params.get('name', None)
+#         serializer = PeopleSerializer(queryset, many=True)
+#         if search is not None:
+#             queryset = queryset.filter(name__contains=search)
+#             serializer = PeopleSerializer(queryset, many=True)
+#         return Response({"results":serializer.data})
+
+class SearchPeople(generics.ListAPIView):
+    queryset = People.objects.all()
+    serializer_class = PeopleSerializer
+
+
+    def list(self, request):
+        # Note the use of `get_queryset()` instead of `self.queryset`
+        queryset = self.get_queryset()
         search = self.request.query_params.get('name', None)
+        serializer = PeopleSerializer(queryset, many=True)
         if search is not None:
             queryset = queryset.filter(name__contains=search)
-        return queryset
+            serializer = PeopleSerializer(queryset, many=True)
+        return Response({"results":serializer.data})
 
 class PeopleSearch(APIView):
    def get(self, request,peoplename, format=None):
        job = People.objects.filter(name__contains=peoplename)
        serializer = PeopleSerializer(job, many=True)
-       return Response(serializer.data)
-    # def get_queryset(self):
-    #     queryset = People.objects.all()
-    #     name = self.request.query_params.get('name', None)
-    #     if name is not None:
-    #         queryset = queryset.filter(name=name)
-    #     return queryset
+       return Response({"results":serializer.data})
+
 
 class PeoplePut(APIView):
     def get_object(self, pk):
